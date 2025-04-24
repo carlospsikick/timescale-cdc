@@ -71,8 +71,8 @@ DO $$ BEGIN
     PERFORM public.add_retention_policy('cdc.event_log', INTERVAL '7 days');
 END $$;
 
--- View to filter event logs for the customers table
-CREATE VIEW cdc.event_log_customers AS
+-- View to filter event logs for the assets table
+CREATE VIEW cdc.event_log_assets AS
  SELECT event_log.ts,
     event_log.schema_name,
     event_log.table_name,
@@ -81,36 +81,36 @@ CREATE VIEW cdc.event_log_customers AS
     event_log.after,
     event_log.event_id
    FROM cdc.event_log
-  WHERE ((event_log.schema_name = 'dataschema'::text) AND (event_log.table_name = 'customers'::text));
+  WHERE ((event_log.schema_name = 'dataschema'::text) AND (event_log.table_name = 'assets'::text));
 
 
 -- =======================
--- dataschema TABLE: customers
+-- dataschema TABLE: assets
 -- =======================
-CREATE TABLE dataschema.customers (
+CREATE TABLE dataschema.assets (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
+    serialnumber TEXT UNIQUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Sample Records
-INSERT INTO dataschema.customers (name, email)
+INSERT INTO dataschema.assets (name, serialnumber)
 VALUES 
-  ('Alice Vega', 'alice@example.com'),
-  ('Bob Ramirez', 'bob@example.com'),
-  ('Charlie Zhang', 'charlie@example.com');
+  ('Water Pump', 'WP001'),
+  ('Steam Trap', 'STM002'),
+  ('Compressor', 'CMP003');
 
 -- CDC Trigger
-CREATE TRIGGER customers_cdc_tr AFTER
+CREATE TRIGGER assets_cdc_tr AFTER
 INSERT
     OR
 DELETE
     OR
 UPDATE
     ON
-    dataschema.customers FOR EACH ROW EXECUTE FUNCTION cdc.change_data_capture();
+    dataschema.assets FOR EACH ROW EXECUTE FUNCTION cdc.change_data_capture();
 
 
 -- =======================
