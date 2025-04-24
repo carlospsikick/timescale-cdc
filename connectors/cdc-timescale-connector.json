@@ -1,0 +1,24 @@
+{
+    "name": "CDCJDBCSourceConnector",
+    "config": { 
+        "connection.url": "jdbc:postgresql://timescaledb:5432/demo",
+        "connection.user": "postgres",
+        "connection.password": "password",
+        "table.whitelist": "cdc.event_log_customers,cdc.event_log",
+        "connector.class": "io.aiven.connect.jdbc.JdbcSourceConnector",
+        "timestamp.column.name": "ts",
+        "incrementing.column.name": "event_id",
+        "validate.non.null": "false",
+        "tasks.max": "1",
+        "start.timestamp": "2025-01-01T00:00:00Z",
+        "table.types": "TABLE,VIEW",
+        "mode": "timestamp+incrementing",
+        "topic.prefix": "cdc-",
+        "schema.pattern": "cdc",
+        "name": "CDCJDBCSourceConnector"
+    }
+  }
+
+   
+    
+    
