@@ -28,8 +28,9 @@ The goal is to capture changes in a PostgreSQL/Timescale table or view and strea
 **📦 Kafka (kafka)**
 - https://kafka.apache.org/
 - KRaft mode (no Zookeeper)
-- Acts as the message broker for event topics like cdc.cdc_view_customers
-    
+- Acts as the message broker for the CDC events.
+- Topic `cdc-event_log` will receive all the CDC records
+- Topic `cdc-event_log_customers` will receive changes from the `customers` table
 
 **🔌 Kafka Connect (kafka-connect)**
 - https://kafka.apache.org/documentation.html#connect
@@ -45,21 +46,29 @@ The goal is to capture changes in a PostgreSQL/Timescale table or view and strea
 - http://localhost:8080
 
 ### 🔁 Data Flow
-1.	New or updated records are written to dataschema tables
-2.	A trigger writes a change record into cdc.cdc_log
-3.	The cdc.cdc_view_customers view exposes these records
+1.	New or updated records are written to dataschema tables (`dataschema.customers` or `dataschema.anomaly`)
+2.	A trigger writes a change record into `cdc.event_log`
+3.	The `cdc.event_log_customers` view filters and exposes customer records
 4.	Kafka Connect polls the view every 5 seconds
-5.	New entries are published to the cdc-cdc_view_customers Kafka topic
-6.	Kafka consumers (e.g. Python scripts) can subscribe and act on the data
+5.	New entries are published to the Kafka topics
+6.	Kafka consumers (e.g. Python scripts or Java apps) can subscribe and act on the data
 
 
 # 🚀 Getting Started
 
+**Prerequisites**
+
+To work with this repo you'll need:
+
+* [Docker](https://www.docker.com/)
+* Your favorite terminal
+* Your favorite Postrgresql client (optional)
+
 **1. Clone the Repo**
 
 ```
-git clone https://github.com/your-org/timescale-cdc-poc.git
-cd timescale-cdc-poc
+git clone https://github.com/carlospsikick/timescale-cdc.git
+cd timescale-cdc
 ```
 
 **2. Download and extract the JDBC Connector**
@@ -79,6 +88,10 @@ unzip aiven-jdbc.zip -d aiven-jdbc
 docker compose up --build -d
 ```
 
+The containers are configured to wait until the Kafka Cluster is healthy. Kafka Connect will take about 90 seconds to fully start.
+Check the docker logs for more details.
+
+
 **4. Insert Test Data**
 
 The Timescale database is accessible at:
@@ -96,7 +109,7 @@ docker exec -it timescaledb psql -U postgres -d demo -c \
   "INSERT INTO dataschema.customers (name, email) VALUES ('Alex', 'alex@example.com');"
 
 docker exec -it timescaledb psql -U postgres -d demo -c \
-"INSERT INTO dataschema.anomaly (ts, sensorid, event) VALUES (NOW() - INTERVAL '1 hour', 'sensor_1', '{"status": "ok"}');"
+"INSERT INTO dataschema.anomaly (ts, sensorid, event) VALUES (NOW() - INTERVAL '1 hour', 'sensor_1', '{\"status\": \"ok\"}');"
 
 ```
 
@@ -110,8 +123,15 @@ docker exec -it timescaledb psql -U postgres -d demo -c \
 
 **5. View Events in Kafka UI**
 
-Open http://localhost:8080 and check the topic cdc-cdc_view_customers.
+Open http://localhost:8080 and check the topics `cdc-event_log` and `cdc-event_log_customers`.
 
+**Starting Over** 
+
+Make sure to shutdown all containers and remove the volumes:
+
+```
+docker compose down -v
+```
 
 
 # 📁 Project Layout
@@ -131,8 +151,6 @@ Open http://localhost:8080 and check the topic cdc-cdc_view_customers.
 └── README.md
 
 ```
-
-
 
 # ⚠️ Disclaimer
 
