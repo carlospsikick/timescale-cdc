@@ -243,7 +243,7 @@ ALTER TABLE ONLY cdc.event_log ADD CONSTRAINT event_log_pkey PRIMARY KEY (event_
 
 -- event_log is a hypertable
 DO $$ BEGIN
-    PERFORM public.create_hypertable('cdc.event_log', 'ts');
+    PERFORM public.create_hypertable('cdc.event_log', by_range('ts'));
     PERFORM public.add_retention_policy('cdc.event_log', INTERVAL '7 days');
 END $$;
 ```
@@ -286,7 +286,7 @@ CREATE VIEW cdc.event_log_assets AS
 
 ## CDC Trigger
 
-To start capturing change events for a particular table, all we need to do is add the trigger function to its definition, for example, to monitor `dataschema.assets` add:
+To begin capturing change events for a particular table, all we need to do is add the trigger function to its definition, for example, to monitor `dataschema.assets` add:
 
 ```
 CREATE TRIGGER assets_cdc_tr AFTER
