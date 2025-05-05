@@ -67,7 +67,7 @@ CREATE INDEX event_log_ts_idx ON cdc.event_log USING btree (ts DESC);
 
 -- event_log is a hypertable
 DO $$ BEGIN
-    PERFORM public.create_hypertable('cdc.event_log', 'ts');
+    PERFORM public.create_hypertable('cdc.event_log', by_range('ts'));
     PERFORM public.add_retention_policy('cdc.event_log', INTERVAL '7 days');
 END $$;
 
@@ -123,7 +123,7 @@ CREATE TABLE dataschema.anomaly (
 );
 
 -- Make anomaly a hypertable
-SELECT create_hypertable('dataschema.anomaly', 'ts');
+SELECT create_hypertable('dataschema.anomaly', by_range('ts'));
 
 
 -- sample data
